@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Scott Grosch on 1/22/20.
-//
-
 import Foundation
 
 public enum PassKitError: Error {

@@ -34,7 +34,7 @@ public actor PassKit<P: PassKitPass> {
     )
   }
   
-  public struct Request {
+  public struct Request: Sendable {
     public let pass: P
     public let headers: [String: String]
     
@@ -47,7 +47,7 @@ public actor PassKit<P: PassKitPass> {
     }
   }
   
-  public struct Response {
+  public struct Response: Sendable {
     public let headers: [String: String]
     public let body: Data
     

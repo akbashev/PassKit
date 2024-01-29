@@ -1,5 +1,3 @@
-import Foundation
-
 public enum PassKitError: Error {
     /// The template path is not a directory
     case templateNotDirectory

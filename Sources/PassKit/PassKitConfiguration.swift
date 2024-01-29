@@ -1,4 +1,4 @@
-import Foundation
+@preconcurrency import Foundation
 
 public struct PassKitConfiguration<P: PassKitPass>: Sendable {
   

@@ -22,7 +22,6 @@ public actor PassKit<P: PassKitPass> {
     self.encoder = JSONEncoder()
     self.logger = logger
     self.pool = .init(
-      logger: logger,
       workers: Array(
         repeating: PassGeneratorWorker<P>(
           logger: logger,
@@ -93,8 +92,15 @@ public actor PassKit<P: PassKitPass> {
   }
   
   private func generatePassContent(for pass: P) async throws -> Data {
-    try await pool.submit(
-      work: pass
-    )
+    do {
+      return try await pool.submit(
+        work: pass
+      )
+    } catch let error as WorkerPoolError {
+      self.logger.error("No workers to submit job to.")
+      throw error
+    } catch {
+      throw error
+    }
   }
 }

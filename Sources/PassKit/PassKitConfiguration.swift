@@ -2,7 +2,7 @@
 
 public struct PassKitConfiguration<P: PassKitPass>: Sendable {
   
-  let inject: @Sendable (_ pass: P) async throws -> [PassKitInject]
+  let inject: @Sendable (_ pass: P) async -> [PassKitInject]
 
   /// Should return a `URL` which points to the template data for the pass.
   ///
@@ -81,7 +81,7 @@ public struct PassKitConfiguration<P: PassKitPass>: Sendable {
     templateDirectory: URL,
     generateSignatureFile: @escaping @Sendable (_: URL) -> Bool = { _ in false },
     encode: @escaping @Sendable (_: P, _: JSONEncoder) async throws -> Data,
-    inject: @escaping @Sendable (_: P) async throws -> [PassKitInject] = { _ in [] },
+    inject: @escaping @Sendable (_: P) async -> [PassKitInject] = { _ in [] },
     sslSigningFilesDirectory: URL,
     sslBinary: URL = URL(fileURLWithPath: "/usr/bin/openssl"),
     zipBinary: URL = URL(fileURLWithPath: "/usr/bin/zip"),

@@ -57,7 +57,7 @@ actor PassGeneratorWorker<P: PassKitPass>: Worker {
     for item: P,
     to root: URL
   ) async throws {
-    let files = try await self.configuration.inject(item)
+    let files = await self.configuration.inject(item)
     guard !files.isEmpty else { return }
     await withTaskGroup(of: Void.self) { group in
       for file in files {

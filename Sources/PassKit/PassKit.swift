@@ -33,32 +33,10 @@ public actor PassKit<P: PassKitPass> {
     )
   }
   
-  public struct Request: Sendable {
-    public let pass: P
-    public let headers: [String: String]
-    
-    public init(
-      pass: P,
-      headers: [String : String]
-    ) {
-      self.pass = pass
-      self.headers = headers
-    }
-  }
-  
-  public struct Response: Sendable {
-    public let headers: [String: String]
-    public let body: Data
-    
-    public init(headers: [String : String], body: Data) {
-      self.headers = headers
-      self.body = body
-    }
-  }
-    
+
   public func execute(
-    request: Request
-  ) async throws -> Response {
+    request: PassKitRequest<P>
+  ) async throws -> PassKitResponse {
     logger.debug("Called latestVersionOfPass")
     
     guard FileManager.default.fileExists(atPath: self.configuration.zipBinary.unixPath) else {
@@ -85,9 +63,9 @@ public actor PassKit<P: PassKitPass> {
     headers["Last-Modified"] = String(request.pass.modified.timeIntervalSince1970)
     headers["Content-Transfer-Encoding"] = "binary"
     
-    return Response(
-      headers: headers,
-      body: data
+    return PassKitResponse(
+      body: data,
+      headers: headers
     )
   }
   
@@ -102,5 +80,32 @@ public actor PassKit<P: PassKitPass> {
     } catch {
       throw error
     }
+  }
+}
+
+public struct PassKitRequest<P: PassKitPass>: Sendable {
+  public let pass: P
+  public let headers: [String: String]
+  
+  public init(
+    pass: P,
+    headers: [String : String]
+  ) {
+    self.pass = pass
+    self.headers = headers
+  }
+}
+
+public struct PassKitResponse: Sendable {
+  
+  public let body: Data
+  public let headers: [String: String]
+  
+  public init(
+    body: Data,
+    headers: [String : String]
+  ) {
+    self.headers = headers
+    self.body = body
   }
 }

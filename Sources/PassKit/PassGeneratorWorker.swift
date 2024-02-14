@@ -70,8 +70,8 @@ actor PassGeneratorWorker<P: PassKitPass>: Worker {
             self.logger.error("\(error)")
           }
         }
-        return await group.waitForAll()
       }
+      return await group.waitForAll()
     }
   }
   

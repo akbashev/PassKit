@@ -61,13 +61,13 @@ actor PassGeneratorWorker<P: PassKitPass>: Worker {
     guard !files.isEmpty else { return }
     await withTaskGroup(of: Void.self) { group in
       for file in files {
-        group.addTask {
+        group.addTask { [weak self] in
           do {
             try file.data.write(
               to: root.appendingPathComponent(file.filename)
             )
           } catch {
-            self.logger.error("\(error)")
+            self?.logger.error("\(error)")
           }
         }
       }

@@ -77,20 +77,16 @@ actor PassGeneratorWorker<P: PassKitPass>: Worker {
   
   // MARK: - pkpass file generation
   private static func generateManifestFile(using encoder: JSONEncoder, in root: URL) throws {
-    var manifest: [String: String] = [:]
-    
     let paths = try FileManager.default.subpathsOfDirectory(atPath: root.unixPath)
-    try paths.forEach { relativePath in
+    let manifest = try paths.reduce(into: [String:String]()) { partial, relativePath in
       let file = URL(fileURLWithPath: relativePath, relativeTo: root)
       guard !file.hasDirectoryPath else {
         return
       }
-      
       let data = try Data(contentsOf: file)
       let hash = Insecure.SHA1.hash(data: data)
-      manifest[relativePath] = hash.hexEncodedString()
+      partial[relativePath] = hash.hexEncodedString()
     }
-    
     let encoded = try encoder.encode(manifest)
     try encoded.write(to: root.appendingPathComponent("manifest.json"))
   }

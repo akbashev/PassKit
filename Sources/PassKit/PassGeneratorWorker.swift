@@ -1,8 +1,8 @@
-@preconcurrency import Foundation
+import Foundation
 import Crypto
 import Logging
 
-actor PassGeneratorWorker<P: PassKitPass>: Worker {
+actor PassGeneratorWorker<P: PassKitPass> {
 
   let logger: Logger
   let configuration: PassKitConfiguration<P>
@@ -23,6 +23,11 @@ actor PassGeneratorWorker<P: PassKitPass>: Worker {
     let root = tmp.appendingPathComponent(UUID().uuidString, isDirectory: true)
     let zipFile = tmp.appendingPathComponent("\(UUID().uuidString).zip")
     
+    defer {
+      _ = try? FileManager.default.removeItem(at: root)
+      _ = try? FileManager.default.removeItem(at: zipFile)
+    }
+    
     let src = configuration.templateDirectory
     var isDir: ObjCBool = false
     
@@ -34,16 +39,12 @@ actor PassGeneratorWorker<P: PassKitPass>: Worker {
       throw PassKitError.templateNotDirectory
     }
     
-    defer {
-      _ = try? FileManager.default.removeItem(at: root)
-      _ = try? FileManager.default.removeItem(at: zipFile)
-    }
-    
+
     try FileManager.default.copyItem(at: src, to: root)
     let encoded = try await configuration.encode(item, encoder)
     try encoded.write(to: root.appendingPathComponent("pass.json"))
     
-    try await injectFiles(for: item, to: root)
+    try await self.injectFiles(for: item, to: root)
     
     try Self.generateManifestFile(using: encoder, in: root)
     try self.generateSignatureFile(in: root)
@@ -61,13 +62,13 @@ actor PassGeneratorWorker<P: PassKitPass>: Worker {
     guard !files.isEmpty else { return }
     await withTaskGroup(of: Void.self) { group in
       for file in files {
-        group.addTask { [weak self] in
+        group.addTask { [logger] in
           do {
             try file.data.write(
               to: root.appendingPathComponent(file.filename)
             )
           } catch {
-            self?.logger.error("\(error)")
+            logger.error("\(error)")
           }
         }
       }

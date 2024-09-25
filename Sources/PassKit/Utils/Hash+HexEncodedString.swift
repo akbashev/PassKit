@@ -6,7 +6,10 @@ extension Sequence where Element == UInt8 {
   }
 
   public func hexEncodedString(uppercase: Bool = false) -> String {
-    return String(decoding: self.hexEncodedBytes(uppercase: uppercase), as: Unicode.UTF8.self)
+    String(
+      decoding: self.hexEncodedBytes(uppercase: uppercase),
+      as: Unicode.UTF8.self
+    )
   }
 
   public func hexEncodedBytes(uppercase: Bool = false) -> [UInt8] {

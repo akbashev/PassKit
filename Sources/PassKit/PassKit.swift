@@ -1,4 +1,4 @@
-@preconcurrency import Foundation
+import Foundation
 import Logging
 
 public actor PassKit<P: PassKitPass> {
@@ -9,9 +9,8 @@ public actor PassKit<P: PassKitPass> {
   }
   
   public let configuration: PassKitConfiguration<P>
-  private let encoder: JSONEncoder
   private let logger: Logger
-  private let pool: WorkerPool<PassGeneratorWorker<P>>
+  private let worker: PassGeneratorWorker<P>
   
   public init(
     configuration: PassKitConfiguration<P>,
@@ -19,21 +18,14 @@ public actor PassKit<P: PassKitPass> {
     workerCount: Int = 4
   ) {
     self.configuration = configuration
-    self.encoder = JSONEncoder()
     self.logger = logger
-    self.pool = .init(
-      workers: Array(
-        repeating: PassGeneratorWorker<P>(
-          logger: logger,
-          configuration: configuration,
-          encoder: self.encoder
-        ),
-        count: workerCount
-      )
+    self.worker = PassGeneratorWorker<P>(
+      logger: logger,
+      configuration: configuration,
+      encoder: JSONEncoder()
     )
   }
   
-
   public func execute(
     request: PassKitRequest<P>
   ) async throws -> PassKitResponse {
@@ -70,16 +62,9 @@ public actor PassKit<P: PassKitPass> {
   }
   
   private func generatePassContent(for pass: P) async throws -> Data {
-    do {
-      return try await pool.submit(
-        work: pass
-      )
-    } catch let error as WorkerPoolError {
-      self.logger.error("No workers to submit job to.")
-      throw error
-    } catch {
-      throw error
-    }
+    try await self.worker.submit(
+      work: pass
+    )
   }
 }
 
